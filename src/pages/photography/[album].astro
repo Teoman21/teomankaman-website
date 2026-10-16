@@ -1,0 +1,76 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DraftBadge from '../../components/DraftBadge.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import Gallery from '../../components/Gallery.astro';
+import { getPublished } from '../../lib/content';
+import { url } from '../../lib/url';
+
+export const getStaticPaths = (async () => {
+  const albums = await getPublished('photography');
+  return albums.map((album) => ({ params: { album: album.id }, props: { album } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  album: CollectionEntry<'photography'>;
+}
+
+const { album } = Astro.props;
+const { title, date, location, description, cover, images, draft } = album.data;
+// Optional notes written in the album's Markdown body.
+const { Content } = await render(album);
+const hasNotes = Boolean(album.body?.trim());
+---
+
+<BaseLayout
+  title={title}
+  description={description ?? `Photo album: ${title}${location ? `, ${location}` : ''}.`}
+  image={cover.src}
+  imageAlt={cover.alt}
+>
+  <div class="container">
+    <header class="page-header">
+      <p class="breadcrumb sans">
+        <a href={url('photography/')}>← All albums</a>
+      </p>
+      <h1>
+        {title} <DraftBadge draft={draft} />
+      </h1>
+      <p class="meta">
+        <FormattedDate date={date} precision="month" />
+        {location && ` · ${location}`}
+        {` · ${images.length} photos`}
+      </p>
+      {description && <p class="description">{description}</p>}
+    </header>
+
+    {hasNotes && (
+      <div class="prose notes">
+        <Content />
+      </div>
+    )}
+
+    <Gallery images={images} />
+  </div>
+</BaseLayout>
+
+<style>
+  .breadcrumb {
+    margin: 0 0 var(--space-3);
+    font-size: 0.875rem;
+  }
+
+  .page-header .meta {
+    margin-bottom: var(--space-3);
+  }
+
+  .description {
+    color: var(--color-text);
+  }
+
+  .notes {
+    margin-bottom: var(--space-6);
+  }
+</style>

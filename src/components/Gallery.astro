@@ -1,0 +1,381 @@
+---
+/**
+ * Responsive photo gallery with a lightweight lightbox (native <dialog>).
+ *
+ * - Grid thumbnails: AVIF/WebP at 480/960px, rows justified by aspect ratio.
+ * - Lightbox: WebP at up to 2000px, loaded only when opened.
+ * - Without JavaScript, each thumbnail simply links to the large image.
+ */
+import type { ImageMetadata } from 'astro';
+import { getImage, Picture } from 'astro:assets';
+
+interface Props {
+  images: { src: ImageMetadata; alt: string; caption?: string }[];
+}
+
+const { images } = Astro.props;
+
+const items = await Promise.all(
+  images.map(async (image) => ({
+    ...image,
+    large: await getImage({ src: image.src, widths: [1200, 2000], format: 'webp' }),
+  })),
+);
+---
+
+<ul class="list-reset gallery">
+  {items.map((item, index) => (
+    <li style={`--ar: ${(item.src.width / item.src.height).toFixed(4)}`}>
+      <figure>
+        <a
+          class="gallery-link"
+          href={item.large.src}
+          data-index={index}
+          data-srcset={item.large.srcSet.attribute}
+          data-width={item.src.width}
+          data-height={item.src.height}
+          data-alt={item.alt}
+          data-caption={item.caption}
+        >
+          <Picture
+            src={item.src}
+            alt={item.alt}
+            widths={[480, 960]}
+            sizes="(min-width: 40rem) 40vw, 100vw"
+            formats={['avif', 'webp']}
+          />
+        </a>
+        {item.caption && <figcaption>{item.caption}</figcaption>}
+      </figure>
+    </li>
+  ))}
+</ul>
+
+<dialog class="lightbox" aria-label="Photo viewer" data-lightbox>
+  <div class="lightbox-stage" data-backdrop>
+    <figure class="lightbox-figure" data-backdrop>
+      <img class="lightbox-image" alt="" decoding="async" />
+      <figcaption class="lightbox-caption"></figcaption>
+    </figure>
+  </div>
+  <p class="lightbox-counter sans" aria-live="polite"></p>
+  <button type="button" class="lightbox-button close" data-action="close" aria-label="Close viewer">
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true">
+      <path
+        d="M6 6l12 12M18 6L6 18"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+      ></path>
+    </svg>
+  </button>
+  <button type="button" class="lightbox-button prev" data-action="prev" aria-label="Previous photo">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+      <path
+        d="M15 5l-7 7 7 7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
+  </button>
+  <button type="button" class="lightbox-button next" data-action="next" aria-label="Next photo">
+    <svg viewBox="0 0 24 24" width="26" height="26" aria-hidden="true">
+      <path
+        d="M9 5l7 7-7 7"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      ></path>
+    </svg>
+  </button>
+</dialog>
+
+<script>
+  const dialog = document.querySelector<HTMLDialogElement>('[data-lightbox]');
+  const links = [...document.querySelectorAll<HTMLAnchorElement>('.gallery-link')];
+
+  if (dialog && links.length > 0) {
+    const image = dialog.querySelector<HTMLImageElement>('.lightbox-image')!;
+    const caption = dialog.querySelector<HTMLElement>('.lightbox-caption')!;
+    const counter = dialog.querySelector<HTMLElement>('.lightbox-counter')!;
+    let current = 0;
+
+    if (links.length === 1) {
+      dialog.querySelectorAll<HTMLElement>('.prev, .next').forEach((el) => (el.hidden = true));
+    }
+
+    const preload = (index: number) => {
+      const link = links[(index + links.length) % links.length]!;
+      const img = new Image();
+      img.sizes = '100vw';
+      img.srcset = link.dataset.srcset ?? '';
+      img.src = link.href;
+    };
+
+    const show = (index: number) => {
+      current = (index + links.length) % links.length;
+      const link = links[current]!;
+      const { srcset = '', width = '', height = '', alt = '', caption: text = '' } = link.dataset;
+      image.width = Number(width);
+      image.height = Number(height);
+      image.alt = alt;
+      image.sizes = '100vw';
+      image.srcset = srcset;
+      image.src = link.href;
+      caption.textContent = text;
+      caption.hidden = !text;
+      counter.textContent = `${current + 1} / ${links.length}`;
+      if (links.length > 1) {
+        preload(current + 1);
+        preload(current - 1);
+      }
+    };
+
+    links.forEach((link, index) => {
+      link.addEventListener('click', (event) => {
+        // Let modified clicks (open in new tab, etc.) behave normally.
+        if (
+          event.button !== 0 ||
+          event.metaKey ||
+          event.ctrlKey ||
+          event.shiftKey ||
+          event.altKey
+        ) {
+          return;
+        }
+        event.preventDefault();
+        show(index);
+        dialog.showModal();
+      });
+    });
+
+    dialog.addEventListener('click', (event) => {
+      const target = event.target as HTMLElement;
+      const action = target.closest<HTMLElement>('[data-action]')?.dataset.action;
+      if (action === 'close') dialog.close();
+      else if (action === 'prev') show(current - 1);
+      else if (action === 'next') show(current + 1);
+      else if (target === dialog || target.hasAttribute('data-backdrop')) dialog.close();
+    });
+
+    dialog.addEventListener('keydown', (event) => {
+      if (event.key === 'ArrowLeft') show(current - 1);
+      else if (event.key === 'ArrowRight') show(current + 1);
+    });
+
+    // Basic swipe navigation on touch screens.
+    let touchStartX: number | null = null;
+    dialog.addEventListener(
+      'touchstart',
+      (event) => (touchStartX = event.touches[0]?.clientX ?? null),
+      {
+        passive: true,
+      },
+    );
+    dialog.addEventListener('touchend', (event) => {
+      const endX = event.changedTouches[0]?.clientX;
+      if (touchStartX === null || endX === undefined) return;
+      const dx = endX - touchStartX;
+      if (Math.abs(dx) > 50) show(current + (dx < 0 ? 1 : -1));
+      touchStartX = null;
+    });
+
+    // Return focus to the photo that was last viewed.
+    dialog.addEventListener('close', () => links[current]?.focus());
+  }
+</script>
+
+<style>
+  /* Phones: one photo per row, full width, natural aspect ratio. */
+  .gallery {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-4);
+  }
+
+  .gallery li {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+
+  /* Larger screens: justified rows. Each item grows in proportion to its
+     aspect ratio, so every photo in a row ends up the same height without
+     cropping. The ::after spacer keeps a short last row from stretching. */
+  @media (min-width: 40rem) {
+    .gallery {
+      --row-height: 12rem;
+      gap: var(--space-3);
+    }
+
+    .gallery::after {
+      content: '';
+      flex-grow: 1000000;
+    }
+
+    .gallery li {
+      flex-grow: calc(var(--ar) * 100);
+      flex-basis: calc(var(--ar) * var(--row-height));
+    }
+  }
+
+  @media (min-width: 64rem) {
+    .gallery {
+      --row-height: 16rem;
+    }
+  }
+
+  figure {
+    margin: 0;
+  }
+
+  .gallery-link {
+    display: block;
+    border-radius: var(--radius);
+    overflow: hidden;
+    background: var(--color-code-bg);
+  }
+
+  .gallery-link :global(img) {
+    width: 100%;
+    height: auto;
+    transition: transform 0.25s ease;
+  }
+
+  .gallery-link:hover :global(img) {
+    transform: scale(1.02);
+  }
+
+  figcaption {
+    margin-top: var(--space-1);
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+
+  /* Lightbox */
+  .lightbox {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: var(--color-backdrop);
+    color: #f4f4f4;
+    overflow: hidden;
+  }
+
+  .lightbox::backdrop {
+    background: transparent;
+  }
+
+  :global(html:has(dialog[open])) {
+    overflow: hidden;
+  }
+
+  .lightbox-stage {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    padding: 3.5rem var(--space-4) var(--space-6);
+  }
+
+  .lightbox-figure {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+  }
+
+  .lightbox-image {
+    width: auto;
+    height: auto;
+    max-width: min(100%, calc(100vw - 2rem));
+    max-height: calc(100dvh - 9rem);
+    object-fit: contain;
+    border-radius: 2px;
+  }
+
+  .lightbox-caption {
+    max-width: 60ch;
+    margin: 0;
+    text-align: center;
+    font-size: 0.9rem;
+    color: #d9d9d9;
+  }
+
+  .lightbox-counter {
+    position: absolute;
+    top: var(--space-4);
+    left: var(--space-4);
+    margin: 0;
+    font-size: 0.85rem;
+    color: #c8c8c8;
+  }
+
+  .lightbox-button {
+    position: absolute;
+    display: grid;
+    place-items: center;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    border: 1px solid rgb(255 255 255 / 0.25);
+    border-radius: 999px;
+    background: rgb(0 0 0 / 0.45);
+    color: #fff;
+    cursor: pointer;
+  }
+
+  .lightbox-button:hover {
+    background: rgb(0 0 0 / 0.75);
+    border-color: rgb(255 255 255 / 0.6);
+  }
+
+  .lightbox-button:focus-visible {
+    outline-color: #fff;
+  }
+
+  .close {
+    top: var(--space-3);
+    right: var(--space-3);
+  }
+
+  .prev,
+  .next {
+    top: 50%;
+    translate: 0 -50%;
+  }
+
+  .prev {
+    left: var(--space-3);
+  }
+
+  .next {
+    right: var(--space-3);
+  }
+
+  /* On phones, move prev/next below the photo so they don't cover it. */
+  @media (max-width: 40rem) {
+    .lightbox-stage {
+      padding-bottom: 4.5rem;
+    }
+
+    .lightbox-image {
+      max-height: calc(100dvh - 11rem);
+    }
+
+    .prev,
+    .next {
+      top: auto;
+      bottom: var(--space-3);
+      translate: none;
+    }
+  }
+</style>

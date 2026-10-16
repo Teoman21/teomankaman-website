@@ -1,0 +1,89 @@
+---
+import { Picture } from 'astro:assets';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DraftBadge from '../../components/DraftBadge.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { byDateDesc, getPublished } from '../../lib/content';
+import { url } from '../../lib/url';
+
+const albums = (await getPublished('photography')).sort(byDateDesc);
+---
+
+<BaseLayout title="Photography" description="Photo albums by Teoman Kaman.">
+  <div class="container">
+    <header class="page-header">
+      <h1>Photography</h1>
+      <p>Albums from places I've been.</p>
+    </header>
+
+    {albums.length === 0 ? (
+      <p class="muted">Nothing here yet.</p>
+    ) : (
+      <ul class="list-reset card-grid albums">
+        {albums.map((album) => (
+          <li>
+            <a class="album" href={url(`photography/${album.id}/`)}>
+              <Picture
+                class="cover"
+                src={album.data.cover.src}
+                alt={album.data.cover.alt}
+                widths={[480, 960]}
+                sizes="(min-width: 66rem) 21rem, (min-width: 40rem) 50vw, 100vw"
+                formats={['avif', 'webp']}
+              />
+              <span class="album-text">
+                <span class="album-title">
+                  {album.data.title} <DraftBadge draft={album.data.draft} />
+                </span>
+                <span class="meta">
+                  <FormattedDate date={album.data.date} precision="month" />
+                  {album.data.location && ` · ${album.data.location}`}
+                  {` · ${album.data.images.length} photos`}
+                </span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .album {
+    display: grid;
+    gap: var(--space-3);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .album :global(.cover) {
+    width: 100%;
+    aspect-ratio: 3 / 2;
+    object-fit: cover;
+    border-radius: var(--radius);
+    background: var(--color-code-bg);
+    transition: opacity 0.2s ease;
+  }
+
+  .album:hover :global(.cover) {
+    opacity: 0.9;
+  }
+
+  .album-text {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .album-title {
+    font-size: 1.08rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+
+  .album:hover .album-title {
+    color: var(--color-accent);
+    text-decoration: underline;
+    text-underline-offset: 0.18em;
+  }
+</style>
