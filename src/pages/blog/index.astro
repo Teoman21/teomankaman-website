@@ -1,0 +1,24 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PostList from '../../components/PostList.astro';
+import { byDateDesc, getPublished } from '../../lib/content';
+import { url } from '../../lib/url';
+
+const posts = (await getPublished('blog')).sort(byDateDesc);
+---
+
+<BaseLayout title="Blog" description="Notes and essays by Teoman Kaman on deep learning and RL.">
+  <div class="container">
+    <header class="page-header">
+      <h1>Blog</h1>
+      <p>
+        Notes on deep learning, reinforcement learning and whatever else I'm thinking about.
+        Subscribe via <a href={url('rss.xml')}>RSS</a>.
+      </p>
+    </header>
+
+    <div class="measure">
+      {posts.length === 0 ? <p class="muted">Nothing here yet.</p> : <PostList posts={posts} />}
+    </div>
+  </div>
+</BaseLayout>

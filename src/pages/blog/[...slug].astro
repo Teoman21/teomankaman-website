@@ -1,0 +1,70 @@
+---
+import type { GetStaticPaths } from 'astro';
+import { render, type CollectionEntry } from 'astro:content';
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import DraftBadge from '../../components/DraftBadge.astro';
+import FormattedDate from '../../components/FormattedDate.astro';
+import { getPublished } from '../../lib/content';
+import { url } from '../../lib/url';
+// Styles for math rendered by rehype-katex (bundled, served from this site).
+import 'katex/dist/katex.min.css';
+
+export const getStaticPaths = (async () => {
+  const posts = await getPublished('blog');
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}) satisfies GetStaticPaths;
+
+interface Props {
+  post: CollectionEntry<'blog'>;
+}
+
+const { post } = Astro.props;
+const { title, description, date, tags, draft } = post.data;
+const { Content } = await render(post);
+---
+
+<BaseLayout title={title} description={description} type="article" publishedTime={date}>
+  <article class="container post">
+    <header class="post-header">
+      <p class="breadcrumb sans">
+        <a href={url('blog/')}>← All posts</a>
+      </p>
+      <h1>
+        {title} <DraftBadge draft={draft} />
+      </h1>
+      <div class="meta post-meta">
+        <FormattedDate date={date} />
+        {tags.length > 0 && (
+          <ul class="tags" aria-label="Tags">
+            {tags.map((tag) => (
+              <li>{tag}</li>
+            ))}
+          </ul>
+        )}
+      </div>
+    </header>
+
+    <div class="prose">
+      <Content />
+    </div>
+  </article>
+</BaseLayout>
+
+<style>
+  .post-header {
+    max-width: var(--measure);
+    padding-block: var(--space-7) var(--space-6);
+  }
+
+  .breadcrumb {
+    margin: 0 0 var(--space-3);
+    font-size: 0.875rem;
+  }
+
+  .post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-4);
+  }
+</style>
