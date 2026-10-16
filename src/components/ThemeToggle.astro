@@ -1,0 +1,94 @@
+---
+// Light/dark toggle. The initial theme is applied by an inline script in
+// BaseHead (before paint); this component only handles user interaction.
+---
+
+<button type="button" class="theme-toggle" data-theme-toggle aria-label="Toggle dark mode">
+  <svg class="icon-moon" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <path
+      d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"
+      fill="none"
+      stroke="currentColor"
+      stroke-width="1.8"
+      stroke-linecap="round"
+      stroke-linejoin="round"
+    ></path>
+  </svg>
+  <svg class="icon-sun" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true">
+    <g fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+      <circle cx="12" cy="12" r="4"></circle>
+      <path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path>
+    </g>
+  </svg>
+</button>
+
+<script>
+  const root = document.documentElement;
+  const media = matchMedia('(prefers-color-scheme: dark)');
+  const button = document.querySelector<HTMLButtonElement>('[data-theme-toggle]');
+
+  function stored(): string | null {
+    try {
+      return localStorage.getItem('theme');
+    } catch {
+      return null;
+    }
+  }
+
+  function apply(theme: 'light' | 'dark') {
+    root.dataset.theme = theme;
+    button?.setAttribute('aria-pressed', String(theme === 'dark'));
+  }
+
+  apply(root.dataset.theme === 'dark' ? 'dark' : 'light');
+
+  button?.addEventListener('click', () => {
+    const next = root.dataset.theme === 'dark' ? 'light' : 'dark';
+    apply(next);
+    try {
+      localStorage.setItem('theme', next);
+    } catch {}
+  });
+
+  // Keep following the OS setting until the visitor makes an explicit choice.
+  media.addEventListener('change', (event) => {
+    if (!stored()) apply(event.matches ? 'dark' : 'light');
+  });
+</script>
+
+<style>
+  .theme-toggle {
+    display: inline-grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .theme-toggle:hover {
+    color: var(--color-text);
+    border-color: var(--color-border-strong);
+  }
+
+  /* Without JavaScript the toggle can't work (the OS setting still applies). */
+  :global(:root:not([data-theme])) .theme-toggle {
+    display: none;
+  }
+
+  .icon-sun {
+    display: none;
+  }
+
+  :global([data-theme='dark']) .icon-sun {
+    display: block;
+  }
+
+  :global([data-theme='dark']) .icon-moon {
+    display: none;
+  }
+</style>

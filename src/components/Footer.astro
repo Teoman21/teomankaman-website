@@ -1,0 +1,65 @@
+---
+import { LINKS, SITE } from '../config';
+import { url } from '../lib/url';
+
+const year = new Date().getFullYear();
+---
+
+<footer class="site-footer">
+  <div class="container inner">
+    <p>
+      &copy; {year} {SITE.name}
+    </p>
+    <ul class="list-reset links">
+      {LINKS.github && (
+        <li>
+          <a href={LINKS.github}>GitHub</a>
+        </li>
+      )}
+      {LINKS.email && (
+        <li>
+          <a href={`mailto:${LINKS.email}`}>Email</a>
+        </li>
+      )}
+      <li>
+        <a href={url('rss.xml')}>RSS</a>
+      </li>
+    </ul>
+  </div>
+</footer>
+
+<style>
+  .site-footer {
+    margin-top: var(--space-8);
+    border-top: 1px solid var(--color-border);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .inner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding-block: var(--space-5);
+  }
+
+  p {
+    margin: 0;
+  }
+
+  .links {
+    display: flex;
+    gap: var(--space-4);
+  }
+
+  a {
+    color: inherit;
+  }
+
+  a:hover {
+    color: var(--color-text);
+  }
+</style>

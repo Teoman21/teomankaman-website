@@ -44,10 +44,11 @@ export default defineConfig({
       rehypePlugins: [rehypeKatex],
     }),
     shikiConfig: {
-      // Dual themes: colors are emitted as CSS variables and switched in
-      // src/styles/global.css based on the active light/dark theme.
+      // Dual themes: token colors are emitted only as CSS variables
+      // (--shiki-light / --shiki-dark) and picked in src/styles/global.css
+      // based on the active light/dark theme.
       themes: { light: 'github-light', dark: 'github-dark' },
-      wrap: false,
+      defaultColor: false,
     },
   },
 });
