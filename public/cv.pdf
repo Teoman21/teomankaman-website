@@ -15,7 +15,7 @@ endobj
 << /Type /Font /Subtype /Type1 /BaseFont /Helvetica-Bold >>
 endobj
 6 0 obj
-<< /Length 969 >>
+<< /Length 1275 >>
 stream
 BT /F2 24 Tf 72 700 Td (Teoman Kaman) Tj ET
 BT /F1 12 Tf 72 676 Td (Curriculum Vitae \(PLACEHOLDER: replace public/cv.pdf with your real CV\)) Tj ET
@@ -24,11 +24,14 @@ BT /F1 11 Tf 72 610 Td (MSc in Artificial Intelligence, Northeastern University 
 BT /F1 11 Tf 72 594 Td (BSc, Binghamton University and Istanbul Technical University) Tj ET
 BT /F2 14 Tf 72 556 Td (Research Interests) Tj ET
 BT /F1 11 Tf 72 536 Td (Foundations of deep learning: learning dynamics, optimization, representation learning,) Tj ET
-BT /F1 11 Tf 72 520 Td (generalization, mechanistic interpretability, and biologically inspired learning.) Tj ET
+BT /F1 11 Tf 72 520 Td (generalization, and mechanistic interpretability. Also interested in quantum mechanics.) Tj ET
 BT /F1 11 Tf 72 504 Td (Multi-agent reinforcement learning \(MARL\) and Dec-POMDPs.) Tj ET
-BT /F2 14 Tf 72 466 Td (Teaching) Tj ET
-BT /F1 11 Tf 72 446 Td (Graduate Teaching Assistant, Reinforcement Learning and Applied AI Programming,) Tj ET
-BT /F1 11 Tf 72 430 Td (Northeastern University) Tj ET
+BT /F2 14 Tf 72 466 Td (Preprints) Tj ET
+BT /F1 11 Tf 72 446 Td (T. Kaman. When to Communicate: Belief Distributions and KL Divergence for Principled) Tj ET
+BT /F1 11 Tf 72 430 Td (Gating in Multi-Agent RL. arXiv:2608.14559, 2026.) Tj ET
+BT /F2 14 Tf 72 392 Td (Teaching) Tj ET
+BT /F1 11 Tf 72 372 Td (Graduate Teaching Assistant, Reinforcement Learning, Northeastern University \(current\)) Tj ET
+BT /F1 11 Tf 72 356 Td (Graduate Teaching Assistant, Applied AI Programming, Northeastern University) Tj ET
 endstream
 endobj
 7 0 obj
@@ -43,9 +46,9 @@ xref
 0000000251 00000 n 
 0000000321 00000 n 
 0000000396 00000 n 
-0000001416 00000 n 
+0000001723 00000 n 
 trailer
 << /Size 8 /Root 1 0 R /Info 7 0 R >>
 startxref
-1503
+1810
 %%EOF
