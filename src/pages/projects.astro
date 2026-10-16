@@ -1,0 +1,128 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import { byDateDesc, getPublished } from '../lib/content';
+
+const projects = (await getPublished('projects')).sort(byDateDesc);
+
+// All tags, most used first.
+const counts = new Map<string, number>();
+for (const project of projects) {
+  for (const tag of project.data.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1);
+}
+const tags = [...counts].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
+---
+
+<BaseLayout title="Projects" description="Research and software projects by Teoman Kaman.">
+  <div class="container">
+    <header class="page-header">
+      <h1>Projects</h1>
+      <p>Research code, tools and experiments.</p>
+    </header>
+
+    {/* Revealed by the script below, so it never shows up without JavaScript. */}
+    {tags.length > 0 && (
+      <div
+        class="tag-filter"
+        role="group"
+        aria-label="Filter projects by tag"
+        data-tag-filter
+        hidden
+      >
+        <button type="button" class="filter-button" data-tag="" aria-pressed="true">
+          All
+        </button>
+        {tags.map((tag) => (
+          <button type="button" class="filter-button" data-tag={tag} aria-pressed="false">
+            {tag}
+          </button>
+        ))}
+      </div>
+    )}
+    <p class="sr-only" aria-live="polite" data-filter-status></p>
+
+    {projects.length === 0 ? (
+      <p class="muted">Nothing here yet.</p>
+    ) : (
+      <ul class="list-reset card-grid">
+        {projects.map((project) => (
+          <li data-tags={JSON.stringify(project.data.tags)}>
+            <ProjectCard project={project} />
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</BaseLayout>
+
+<script>
+  const filter = document.querySelector<HTMLElement>('[data-tag-filter]');
+  const status = document.querySelector<HTMLElement>('[data-filter-status]');
+  const cards = [...document.querySelectorAll<HTMLElement>('[data-tags]')];
+
+  if (filter) {
+    const buttons = [...filter.querySelectorAll<HTMLButtonElement>('button[data-tag]')];
+    filter.hidden = false;
+
+    const apply = (tag: string, announce = true) => {
+      let shown = 0;
+      for (const card of cards) {
+        const match = !tag || (JSON.parse(card.dataset.tags ?? '[]') as string[]).includes(tag);
+        card.hidden = !match;
+        if (match) shown++;
+      }
+      for (const button of buttons) {
+        button.setAttribute('aria-pressed', String(button.dataset.tag === tag));
+      }
+      if (announce && status) {
+        status.textContent = tag
+          ? `Showing ${shown} of ${cards.length} projects tagged ${tag}`
+          : `Showing all ${cards.length} projects`;
+      }
+      // Keep the filter in the URL so it can be shared (…/projects/?tag=marl).
+      const url = new URL(location.href);
+      if (tag) url.searchParams.set('tag', tag);
+      else url.searchParams.delete('tag');
+      history.replaceState(null, '', url);
+    };
+
+    filter.addEventListener('click', (event) => {
+      const button = (event.target as Element).closest<HTMLButtonElement>('button[data-tag]');
+      if (button) apply(button.dataset.tag ?? '');
+    });
+
+    const initial = new URLSearchParams(location.search).get('tag');
+    if (initial && buttons.some((b) => b.dataset.tag === initial)) apply(initial, false);
+  }
+</script>
+
+<style>
+  .tag-filter {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-6);
+  }
+
+  .filter-button {
+    padding: 0.3rem 0.85rem;
+    border: 1px solid var(--color-border-strong);
+    border-radius: 999px;
+    background: transparent;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    cursor: pointer;
+  }
+
+  .filter-button:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+  }
+
+  .filter-button[aria-pressed='true'] {
+    background: var(--color-accent);
+    border-color: var(--color-accent);
+    color: var(--color-bg);
+  }
+</style>

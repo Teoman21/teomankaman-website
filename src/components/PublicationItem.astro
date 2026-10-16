@@ -1,0 +1,130 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { SITE } from '../config';
+import { resolveHref } from '../lib/url';
+import DraftBadge from './DraftBadge.astro';
+
+interface Props {
+  publication: CollectionEntry<'publications'>;
+  /** Show the year next to the venue (useful outside the year-grouped list). */
+  showYear?: boolean;
+}
+
+const { publication, showYear = false } = Astro.props;
+const { title, authors, venue, year, status, links, abstract, draft } = publication.data;
+
+const LINK_LABELS = {
+  pdf: 'PDF',
+  arxiv: 'arXiv',
+  code: 'Code',
+  poster: 'Poster',
+  slides: 'Slides',
+} as const;
+
+const linkItems = (Object.keys(LINK_LABELS) as (keyof typeof LINK_LABELS)[]).flatMap((key) => {
+  const href = links[key];
+  return href ? [{ label: LINK_LABELS[key], href: resolveHref(href) }] : [];
+});
+
+const STATUS_LABELS: Record<typeof status, string | undefined> = {
+  published: undefined,
+  'under review': 'Under review',
+  preprint: 'Preprint',
+  workshop: 'Workshop',
+};
+const statusLabel = STATUS_LABELS[status];
+---
+
+<article class="publication">
+  <h3 class="title">{title}</h3>
+  <p class="authors">
+    {
+      // Returned as arrays (not JSX fragments) so no whitespace sneaks in before the commas.
+      authors.map((author, i) => [
+        i > 0 ? ', ' : '',
+        author === SITE.authorName ? <strong>{author}</strong> : author,
+      ])
+    }
+  </p>
+  <p class="meta">
+    <span class="venue">
+      {venue}
+      {showYear && `, ${year}`}
+    </span>
+    {statusLabel && <span class="status">{statusLabel}</span>}
+    <DraftBadge draft={draft} />
+  </p>
+  {linkItems.length > 0 && (
+    <ul class="badges">
+      {linkItems.map(({ label, href }) => (
+        <li>
+          <a class="badge" href={href}>
+            {label}
+            <span class="sr-only">: {title}</span>
+          </a>
+        </li>
+      ))}
+    </ul>
+  )}
+  {abstract && (
+    <details class="abstract">
+      <summary>Abstract</summary>
+      <p>{abstract}</p>
+    </details>
+  )}
+</article>
+
+<style>
+  .publication {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .title {
+    font-size: 1.08rem;
+    margin: 0;
+  }
+
+  .authors,
+  .meta {
+    margin: 0;
+  }
+
+  .authors {
+    font-size: 0.97rem;
+  }
+
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2);
+  }
+
+  .venue {
+    font-style: italic;
+  }
+
+  .abstract {
+    margin-top: var(--space-1);
+    font-size: 0.95rem;
+  }
+
+  .abstract summary {
+    width: fit-content;
+    cursor: pointer;
+    font-family: var(--font-sans);
+    font-size: 0.82rem;
+    color: var(--color-text-muted);
+  }
+
+  .abstract summary:hover {
+    color: var(--color-text);
+  }
+
+  .abstract p {
+    margin: var(--space-2) 0 0;
+    padding-left: var(--space-3);
+    border-left: 2px solid var(--color-border);
+  }
+</style>

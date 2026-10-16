@@ -1,0 +1,125 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { getPublished, groupBy, termSortKey } from '../lib/content';
+import { resolveHref } from '../lib/url';
+import DraftBadge from '../components/DraftBadge.astro';
+
+const courses = (await getPublished('coursework')).sort(
+  (a, b) =>
+    termSortKey(b.data.term) - termSortKey(a.data.term) || a.data.code.localeCompare(b.data.code),
+);
+
+// Institutions ordered by their most recent term (courses are already sorted),
+// then terms newest first within each institution.
+const byInstitution = [...groupBy(courses, (c) => c.data.institution)].map(
+  ([institution, items]) => ({
+    institution,
+    terms: [...groupBy(items, (c) => c.data.term)],
+  }),
+);
+
+const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+---
+
+<BaseLayout
+  title="Coursework"
+  description="Graduate and undergraduate coursework taken by Teoman Kaman."
+>
+  <div class="container">
+    <header class="page-header">
+      <h1>Coursework</h1>
+      <p>Selected courses, grouped by institution and term.</p>
+    </header>
+
+    {byInstitution.length === 0 && <p class="muted">Nothing here yet.</p>}
+
+    {byInstitution.map(({ institution, terms }) => (
+      <section class="section" aria-labelledby={slug(institution)}>
+        <h2 id={slug(institution)} class="section-heading">
+          {institution}
+        </h2>
+        {terms.map(([term, items]) => (
+          <div class="term">
+            <h3 class="term-heading">{term}</h3>
+            <ul class="list-reset courses">
+              {items.map(({ data }) => (
+                <li class="course">
+                  <h4 class="course-title">
+                    <span class="code">{data.code}</span> {data.name}{' '}
+                    <DraftBadge draft={data.draft} />
+                  </h4>
+                  <p class="description">{data.description}</p>
+                  {(data.tags.length > 0 || data.repo) && (
+                    <div class="footer">
+                      {data.tags.length > 0 && (
+                        <ul class="tags" aria-label="Tags">
+                          {data.tags.map((tag) => (
+                            <li>{tag}</li>
+                          ))}
+                        </ul>
+                      )}
+                      {data.repo && (
+                        <a class="badge" href={resolveHref(data.repo)}>
+                          Code<span class="sr-only">: {data.name}</span>
+                        </a>
+                      )}
+                    </div>
+                  )}
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+    ))}
+  </div>
+</BaseLayout>
+
+<style>
+  .term {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+    max-width: var(--measure);
+  }
+
+  .term-heading {
+    margin: 0;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--color-text-muted);
+  }
+
+  .courses {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .course-title {
+    margin: 0 0 var(--space-1);
+    font-size: 1.05rem;
+  }
+
+  .code {
+    font-family: var(--font-sans);
+    font-size: 0.85em;
+    font-weight: 600;
+    color: var(--color-accent);
+    margin-right: var(--space-1);
+  }
+
+  .description {
+    margin: 0 0 var(--space-2);
+    font-size: 0.97rem;
+  }
+
+  .footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+</style>

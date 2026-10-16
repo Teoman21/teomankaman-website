@@ -1,0 +1,68 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { url } from '../lib/url';
+import DraftBadge from './DraftBadge.astro';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+  posts: CollectionEntry<'blog'>[];
+  /** Heading level for post titles, to keep the page outline correct. */
+  headingLevel?: 'h2' | 'h3';
+}
+
+const { posts, headingLevel: Heading = 'h2' } = Astro.props;
+---
+
+<ol class="list-reset posts">
+  {posts.map((post) => (
+    <li>
+      <article class="post">
+        <p class="meta">
+          <FormattedDate date={post.data.date} />
+        </p>
+        <Heading class="title">
+          <a href={url(`blog/${post.id}/`)}>{post.data.title}</a>{' '}
+          <DraftBadge draft={post.data.draft} />
+        </Heading>
+        <p class="description">{post.data.description}</p>
+      </article>
+    </li>
+  ))}
+</ol>
+
+<style>
+  .posts {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  .post {
+    display: grid;
+    gap: var(--space-1);
+  }
+
+  .meta,
+  .description {
+    margin: 0;
+  }
+
+  .title {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+
+  .title a {
+    color: var(--color-text);
+    text-decoration: none;
+  }
+
+  .title a:hover {
+    color: var(--color-accent);
+    text-decoration: underline;
+  }
+
+  .description {
+    color: var(--color-text-muted);
+    font-size: 0.97rem;
+  }
+</style>

@@ -20,7 +20,7 @@
   --color-code-bg: light-dark(#f3f1ec, #1b1f24);
   --color-warning-bg: light-dark(#fff4d6, #3a2f12);
   --color-warning-text: light-dark(#6b4d00, #f3d27a);
-  --color-backdrop: rgb(10 12 14 / 0.92);
+  --color-backdrop: rgb(10 12 14 / 0.97);
 
   --font-serif:
     Charter, 'Bitstream Charter', 'Sitka Text', Cambria, 'Iowan Old Style', Georgia, serif;
@@ -291,6 +291,13 @@ button {
    Shared components
    ========================================================================== */
 
+/* Responsive card grid (projects, albums) */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 18rem), 1fr));
+  gap: var(--space-5);
+}
+
 /* Pill-shaped link badges (PDF, arXiv, Code, …) */
 .badges {
   display: flex;
@@ -482,4 +489,9 @@ a.badge:hover {
   overflow-x: auto;
   overflow-y: hidden;
   padding-block: var(--space-1);
+}
+
+/* Make sure `hidden` wins over component display rules (used by the tag filter). */
+[hidden] {
+  display: none !important;
 }

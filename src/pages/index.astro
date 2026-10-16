@@ -1,11 +1,185 @@
 ---
+import { Picture } from 'astro:assets';
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { SITE } from '../config';
+import PublicationItem from '../components/PublicationItem.astro';
+import ProjectCard from '../components/ProjectCard.astro';
+import PostList from '../components/PostList.astro';
+import { LINKS, SITE } from '../config';
+import { byDateDesc, getPublished } from '../lib/content';
+import { url } from '../lib/url';
+// Replace src/assets/profile.jpg with your photo (square works best).
+import profilePhoto from '../assets/profile.jpg';
+
+const publications = (await getPublished('publications'))
+  .filter((p) => p.data.featured)
+  .sort((a, b) => b.data.year - a.data.year)
+  .slice(0, 4);
+
+const projects = (await getPublished('projects'))
+  .filter((p) => p.data.featured)
+  .sort(byDateDesc)
+  .slice(0, 4);
+
+const posts = (await getPublished('blog')).sort(byDateDesc).slice(0, 3);
+
+const profileLinks = [
+  { label: 'GitHub', href: LINKS.github },
+  { label: 'Google Scholar', href: LINKS.scholar },
+  { label: 'LinkedIn', href: LINKS.linkedin },
+  { label: 'Email', href: LINKS.email && `mailto:${LINKS.email}` },
+  { label: 'CV', href: url('cv/') },
+].filter((link) => link.href);
 ---
 
 <BaseLayout>
-  <div class="container page-header">
-    <h1>{SITE.name}</h1>
-    <p>{SITE.tagline}</p>
+  <section class="container intro" aria-labelledby="intro-heading">
+    <div class="intro-text">
+      <h1 id="intro-heading">{SITE.name}</h1>
+      <p class="tagline">{SITE.tagline}</p>
+      <div class="bio">
+        <p>
+          I'm an MSc student in Artificial Intelligence at Northeastern University (expected May
+          2027). I completed my BSc at Binghamton University and Istanbul Technical University.
+        </p>
+        <p>
+          My research focuses on the <strong>foundations of deep learning</strong>: understanding
+          how and why neural networks work. I'm interested in learning dynamics and optimization,
+          representation learning, generalization, mechanistic interpretability, and the connections
+          between artificial and biological learning, including neuroscience-inspired architectures
+          and learning rules.
+        </p>
+        <p>
+          I also work on multi-agent reinforcement learning (MARL) and Dec-POMDPs, and I'm a
+          graduate teaching assistant for Reinforcement Learning and Applied AI Programming at
+          Northeastern.
+        </p>
+      </div>
+      <ul class="list-reset profile-links">
+        {profileLinks.map((link) => (
+          <li>
+            <a href={link.href}>{link.label}</a>
+          </li>
+        ))}
+      </ul>
+    </div>
+    <Picture
+      class="portrait-img"
+      pictureAttributes={{ class: 'portrait' }}
+      src={profilePhoto}
+      alt="Portrait of Teoman Kaman (placeholder)"
+      widths={[200, 400]}
+      sizes="200px"
+      formats={['avif', 'webp']}
+      loading="eager"
+      fetchpriority="high"
+    />
+  </section>
+
+  <div class="container">
+    {publications.length > 0 && (
+      <section class="section" aria-labelledby="featured-publications">
+        <div class="section-heading">
+          <h2 id="featured-publications">Selected publications</h2>
+          <a href={url('publications/')}>All publications →</a>
+        </div>
+        <ul class="list-reset stack">
+          {publications.map((publication) => (
+            <li>
+              <PublicationItem publication={publication} showYear />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {projects.length > 0 && (
+      <section class="section" aria-labelledby="featured-projects">
+        <div class="section-heading">
+          <h2 id="featured-projects">Featured projects</h2>
+          <a href={url('projects/')}>All projects →</a>
+        </div>
+        <ul class="list-reset card-grid">
+          {projects.map((project) => (
+            <li>
+              <ProjectCard project={project} />
+            </li>
+          ))}
+        </ul>
+      </section>
+    )}
+
+    {posts.length > 0 && (
+      <section class="section" aria-labelledby="latest-posts">
+        <div class="section-heading">
+          <h2 id="latest-posts">Latest posts</h2>
+          <a href={url('blog/')}>All posts →</a>
+        </div>
+        <PostList posts={posts} headingLevel="h3" />
+      </section>
+    )}
   </div>
 </BaseLayout>
+
+<style>
+  .intro {
+    display: grid;
+    gap: var(--space-6);
+    padding-block: var(--space-7);
+  }
+
+  .intro h1 {
+    margin-bottom: var(--space-1);
+  }
+
+  .tagline {
+    margin: 0 0 var(--space-5);
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    color: var(--color-text-muted);
+  }
+
+  .bio {
+    max-width: var(--measure);
+  }
+
+  .intro :global(.portrait) {
+    order: -1;
+    width: 8rem;
+  }
+
+  .intro :global(.portrait-img) {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 1px solid var(--color-border);
+  }
+
+  .profile-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+  }
+
+  .stack {
+    display: grid;
+    gap: var(--space-5);
+  }
+
+  @media (min-width: 48rem) {
+    .intro {
+      grid-template-columns: 1fr auto;
+      align-items: start;
+      gap: var(--space-7);
+      padding-block: var(--space-8) var(--space-7);
+    }
+
+    .intro :global(.portrait) {
+      order: 0;
+      width: 12.5rem;
+      margin-top: var(--space-2);
+    }
+  }
+</style>

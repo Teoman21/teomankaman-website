@@ -1,0 +1,85 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import PublicationItem from '../components/PublicationItem.astro';
+import { getPublished, groupBy } from '../lib/content';
+import { LINKS } from '../config';
+
+const publications = (await getPublished('publications')).sort(
+  (a, b) => b.data.year - a.data.year || a.data.title.localeCompare(b.data.title),
+);
+const byYear = groupBy(publications, (p) => p.data.year);
+---
+
+<BaseLayout
+  title="Publications"
+  description="Publications, preprints and workshop papers by Teoman Kaman."
+>
+  <div class="container">
+    <header class="page-header">
+      <h1>Publications</h1>
+      <p>
+        Papers, preprints and workshop contributions, newest first.
+        {LINKS.scholar && (
+          <>
+            See also <a href={LINKS.scholar}>Google Scholar</a>.
+          </>
+        )}
+      </p>
+    </header>
+
+    {publications.length === 0 ? (
+      <p class="muted">Nothing here yet.</p>
+    ) : (
+      [...byYear].map(([year, items]) => (
+        <section class="section year" aria-labelledby={`year-${year}`}>
+          <h2 id={`year-${year}`} class="year-heading">
+            {year}
+          </h2>
+          <ul class="list-reset stack">
+            {items.map((publication) => (
+              <li>
+                <PublicationItem publication={publication} />
+              </li>
+            ))}
+          </ul>
+        </section>
+      ))
+    )}
+  </div>
+</BaseLayout>
+
+<style>
+  .year {
+    display: grid;
+    gap: var(--space-3);
+  }
+
+  .year-heading {
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--color-text-muted);
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: var(--space-2);
+    margin: 0 0 var(--space-2);
+  }
+
+  .stack {
+    display: grid;
+    gap: var(--space-5);
+    max-width: var(--measure);
+  }
+
+  @media (min-width: 48rem) {
+    .year {
+      grid-template-columns: 6rem 1fr;
+      gap: var(--space-5);
+    }
+
+    .year-heading {
+      border: 0;
+      padding: 0;
+      font-size: 1.1rem;
+    }
+  }
+</style>

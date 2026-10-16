@@ -1,0 +1,55 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { url } from '../lib/url';
+---
+
+<BaseLayout
+  title="Page not found"
+  description="The page you were looking for doesn't exist."
+  noindex
+>
+  <div class="container not-found">
+    <p class="code sans">404</p>
+    <h1>Page not found</h1>
+    <p class="muted">
+      The page you were looking for doesn't exist or has moved. Try one of these instead:
+    </p>
+    <ul class="links sans">
+      <li>
+        <a href={url()}>Home</a>
+      </li>
+      <li>
+        <a href={url('publications/')}>Publications</a>
+      </li>
+      <li>
+        <a href={url('projects/')}>Projects</a>
+      </li>
+      <li>
+        <a href={url('blog/')}>Blog</a>
+      </li>
+    </ul>
+  </div>
+</BaseLayout>
+
+<style>
+  .not-found {
+    max-width: var(--measure);
+    padding-block: var(--space-8);
+  }
+
+  .code {
+    margin: 0 0 var(--space-2);
+    font-size: 0.9rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    color: var(--color-accent);
+  }
+
+  .links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+    padding: 0;
+    list-style: none;
+  }
+</style>

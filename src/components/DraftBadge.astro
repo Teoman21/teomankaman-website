@@ -1,0 +1,11 @@
+---
+// Marks draft entries. Drafts only exist in `npm run dev`, so this never
+// appears on the deployed site.
+interface Props {
+  draft?: boolean;
+}
+
+const { draft = false } = Astro.props;
+---
+
+{draft && <span class="status status--draft">Draft</span>}

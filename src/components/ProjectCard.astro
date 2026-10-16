@@ -1,0 +1,107 @@
+---
+import type { CollectionEntry } from 'astro:content';
+import { Picture } from 'astro:assets';
+import { resolveHref } from '../lib/url';
+import DraftBadge from './DraftBadge.astro';
+import FormattedDate from './FormattedDate.astro';
+
+interface Props {
+  project: CollectionEntry<'projects'>;
+}
+
+const { project } = Astro.props;
+const { title, summary, date, tags, links, image, draft } = project.data;
+
+const LINK_LABELS = { repo: 'Code', demo: 'Demo', paper: 'Paper' } as const;
+const linkItems = (Object.keys(LINK_LABELS) as (keyof typeof LINK_LABELS)[]).flatMap((key) => {
+  const href = links[key];
+  return href ? [{ label: LINK_LABELS[key], href: resolveHref(href) }] : [];
+});
+---
+
+<article class="card">
+  {image && (
+    <Picture
+      class="thumb"
+      src={image.src}
+      alt={image.alt}
+      widths={[400, 800]}
+      sizes="(min-width: 66rem) 21rem, (min-width: 40rem) 50vw, 100vw"
+      formats={['avif', 'webp']}
+    />
+  )}
+  <div class="body">
+    <h3 class="title">
+      {title} <DraftBadge draft={draft} />
+    </h3>
+    <p class="meta">
+      <FormattedDate date={date} precision="month" />
+    </p>
+    <p class="summary">{summary}</p>
+    {tags.length > 0 && (
+      <ul class="tags" aria-label="Tags">
+        {tags.map((tag) => (
+          <li>{tag}</li>
+        ))}
+      </ul>
+    )}
+    {linkItems.length > 0 && (
+      <ul class="badges">
+        {linkItems.map(({ label, href }) => (
+          <li>
+            <a class="badge" href={href}>
+              {label}
+              <span class="sr-only">: {title}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    )}
+  </div>
+</article>
+
+<style>
+  .card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    border: 1px solid var(--color-border);
+    border-radius: calc(var(--radius) * 1.5);
+    background: var(--color-surface);
+  }
+
+  .card :global(.thumb) {
+    width: 100%;
+    aspect-ratio: 16 / 9;
+    object-fit: cover;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    flex: 1;
+    padding: var(--space-4) var(--space-4) var(--space-5);
+  }
+
+  .title {
+    font-size: 1.08rem;
+    margin: 0;
+  }
+
+  .meta,
+  .summary {
+    margin: 0;
+  }
+
+  .summary {
+    font-size: 0.97rem;
+  }
+
+  .badges {
+    margin-top: auto;
+    padding-top: var(--space-2);
+  }
+</style>
