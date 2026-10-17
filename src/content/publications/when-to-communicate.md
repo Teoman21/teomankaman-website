@@ -8,6 +8,7 @@ status: preprint
 links:
   pdf: https://arxiv.org/pdf/2608.14559
   arxiv: https://arxiv.org/abs/2608.14559
+  code: https://github.com/Teoman21/IC3Net_Belief_KL
 abstract: >-
   Effective communication in multi-agent reinforcement learning requires agents
   to decide not only what to communicate, but when? Existing approaches either
