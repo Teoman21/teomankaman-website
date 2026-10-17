@@ -6,7 +6,10 @@ import DraftBadge from '../components/DraftBadge.astro';
 
 const courses = (await getPublished('coursework')).sort(
   (a, b) =>
-    termSortKey(b.data.term) - termSortKey(a.data.term) || a.data.code.localeCompare(b.data.code),
+    termSortKey(b.data.term) - termSortKey(a.data.term) ||
+    // Courses without a code go last within their term.
+    Number(!a.data.code) - Number(!b.data.code) ||
+    (a.data.code ?? '').localeCompare(b.data.code ?? ''),
 );
 
 // Institutions ordered by their most recent term (courses are already sorted),
@@ -45,7 +48,8 @@ const slug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-');
               {items.map(({ data }) => (
                 <li class="course">
                   <h4 class="course-title">
-                    <span class="code">{data.code}</span> {data.name}{' '}
+                    {data.code && <span class="code">{data.code}</span>} {data.name}{' '}
+                    {data.inProgress && <span class="status">In progress</span>}
                     <DraftBadge draft={data.draft} />
                   </h4>
                   <p class="description">{data.description}</p>

@@ -76,7 +76,7 @@ const coursework = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/coursework' }),
   schema: z.object({
     name: z.string(),
-    code: z.string(),
+    code: z.string().optional(),
     institution: z.string(),
     term: z
       .string()
@@ -84,6 +84,8 @@ const coursework = defineCollection({
     description: z.string(),
     repo: href.optional(),
     tags,
+    /** Mark courses you're taking right now; shown with an "In progress" label. */
+    inProgress: z.boolean().default(false),
     draft,
   }),
 });

@@ -139,12 +139,13 @@ Put project images in `src/content/projects/images/` (16:9 works best). They are
 ```md
 ---
 name: Reinforcement Learning and Sequential Decision Making
-code: CS5180
+code: CS 5180 # optional
 institution: Northeastern University
 term: Fall 2025 # "Spring|Summer|Fall|Winter YYYY"
 description: One or two sentences about the course.
 repo: https://github.com/Teoman21/repo # optional
 tags: [reinforcement learning]
+inProgress: false # true for courses you're currently taking
 draft: false
 ---
 ```
