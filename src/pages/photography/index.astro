@@ -38,7 +38,7 @@ const albums = (await getPublished('photography')).sort(byDateDesc);
                 <span class="meta">
                   <FormattedDate date={album.data.date} precision="month" />
                   {album.data.location && ` · ${album.data.location}`}
-                  {` · ${album.data.images.length} photos`}
+                  {` · ${album.data.images.length} photo${album.data.images.length === 1 ? '' : 's'}`}
                 </span>
               </span>
             </a>

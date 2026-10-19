@@ -41,7 +41,7 @@ const hasNotes = Boolean(album.body?.trim());
       <p class="meta">
         <FormattedDate date={date} precision="month" />
         {location && ` · ${location}`}
-        {` · ${images.length} photos`}
+        {` · ${images.length} photo${images.length === 1 ? '' : 's'}`}
       </p>
       {description && <p class="description">{description}</p>}
     </header>

@@ -274,7 +274,6 @@ Everything below is placeholder content to replace or delete:
 - [ ] `src/assets/profile.jpg`: your photo
 - [ ] `public/cv.pdf`: your CV
 - [ ] `src/content/**`: every file whose title starts with "Placeholder" (search for `PLACEHOLDER`)
-- [ ] `src/content/photography/*-placeholder/`: generated placeholder images
 - [ ] `public/favicon.svg` and PNG favicons, `src/assets/og-default.jpg` (optional)
 
 ## Upgrading Astro
