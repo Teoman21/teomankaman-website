@@ -1,5 +1,5 @@
 ---
-title: 'Can We Finally Solve All of the Math Problems with the Use of AI?'
+title: 'Can AI Solve Every Problem?'
 date: 2026-11-23
 description: Will AI solve P vs NP, is math dead, and is AI smarter than us? Why I think the real limit is time, not possibility.
 tags: [ai, mathematics, interpretability]
